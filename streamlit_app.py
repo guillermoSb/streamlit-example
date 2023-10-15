@@ -50,3 +50,21 @@ df = pd.DataFrame({'Categorias': categories, 'Porcentaje': percentage_importacio
 # Visualizar gráfico
 fig = px.pie(df, values='Porcentaje', names='Categorias', title=f'Porcentaje de importaciones de gasolina en {year}')
 st.plotly_chart(fig)
+
+
+# ------------------------------
+# Visualizar importaciones en serie de tiempo
+# ------------------------------
+
+"""
+### Importaciones de combustible en serie de tiempo
+"""
+
+# Picker rango de años
+year = st.slider('Rango de años', 2010, 2023, (2010, 2023))
+# Visualizar gráfico
+fig = px.line(importaciones_df[(importaciones_df['year'] >= year[0]) & (importaciones_df['year'] <= year[1])], x='fecha', y=categories, title='Importaciones de combustible en serie de tiempo')
+st.plotly_chart(fig)
+
+
+
