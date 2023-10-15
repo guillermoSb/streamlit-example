@@ -3,36 +3,50 @@ import altair as alt
 import math
 import pandas as pd
 import streamlit as st
+import plotly.express as px
+
+
+
+# Load data from /data directory
+importaciones_df = pd.read_csv('data/importaciones_gasolina.csv')
+columns = ['Fecha', 'Diesel bajo azufre', 'Diesel ultra bajo azufre', 'Gas licuado de petróleo', 'Gasolina regular', 'Gasolina superior', 'Diesel alto azufre']
+importaciones_df = importaciones_df[columns]
+
+# Renombrando columnas
+new_column_names = ['fecha', 'diesel_bajo_azufre', 'diesel_ultra_bajo_azufre', 'gas_licuado_petroleo', 'gasolina_regular', 'gasolina_superior', 'diesel_alto_azufre']
+importaciones_df.columns = new_column_names
+
+# Obtener el mes de la columna Fecha
+importaciones_df['month'] = pd.DatetimeIndex(importaciones_df['fecha']).month
+# Obtener el año de la columna Fecha
+importaciones_df['year'] = pd.DatetimeIndex(importaciones_df['fecha']).year
+# Convertir valores de importaciones a float
+for column in new_column_names[1:]:
+    importaciones_df[column] = importaciones_df[column].str.replace(',', '').astype(float)
+
+
 
 """
-# Welcome to Streamlit!
-
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:
-
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
-
-In the meantime, below is an example of what you can do with just a few lines of code:
+# Universidad del Valle de Guatemala
+## Visualización de datos - Importaciones y Precios de Gasolina
 """
 
-
-with st.echo(code_location='below'):
-    total_points = st.slider("Number of points in spiral", 1, 5000, 2000)
-    num_turns = st.slider("Number of turns in spiral", 1, 100, 9)
-
-    Point = namedtuple('Point', 'x y')
-    data = []
-
-    points_per_turn = total_points / num_turns
-
-    for curr_point_num in range(total_points):
-        curr_turn, i = divmod(curr_point_num, points_per_turn)
-        angle = (curr_turn + 1) * 2 * math.pi * i / points_per_turn
-        radius = curr_point_num / total_points
-        x = radius * math.cos(angle)
-        y = radius * math.sin(angle)
-        data.append(Point(x, y))
-
-    st.altair_chart(alt.Chart(pd.DataFrame(data), height=500, width=500)
-        .mark_circle(color='#0068c9', opacity=0.5)
-        .encode(x='x:Q', y='y:Q'))
+"""
+### Porcentaje de importaciones de combustible
+"""
+# ------------------------------
+# Visualizar porcentaje de importaciones
+# ------------------------------
+# Picker de año
+year = st.selectbox('Año', importaciones_df['year'].unique())
+# Categories
+categories = ['diesel_bajo_azufre', 'diesel_ultra_bajo_azufre', 'gas_licuado_petroleo', 'gasolina_regular', 'gasolina_superior', 'diesel_alto_azufre']
+# Obtener el total de importaciones
+total_importaciones = importaciones_df[importaciones_df['year'] == year][categories].sum().sum()
+# Obtener el porcentaje de importaciones dos decimales
+percentage_importaciones = round(importaciones_df[importaciones_df['year'] == year][categories].sum() / total_importaciones * 100,2)
+# Crear dataframe para visualizar
+df = pd.DataFrame({'Categorias': categories, 'Porcentaje': percentage_importaciones})    
+# Visualizar gráfico
+fig = px.pie(df, values='Porcentaje', names='Categorias', title=f'Porcentaje de importaciones de gasolina en {year}')
+st.plotly_chart(fig)
